@@ -9,6 +9,7 @@ enum SidebarTab: String, CaseIterable, Identifiable {
     case stats = "Stats"
     case rewards = "Rewards"
     case workLog = "Work Log"
+    case aiAssistant = "AI Assistant"
     case settings = "Settings"
 
     var id: String { rawValue }
@@ -22,6 +23,7 @@ enum SidebarTab: String, CaseIterable, Identifiable {
         case .stats:           return "chart.bar"
         case .rewards:         return "star.circle"
         case .workLog:         return "clock.badge.checkmark"
+        case .aiAssistant:     return "sparkles"
         case .settings:        return "gearshape"
         }
     }
@@ -55,6 +57,7 @@ struct ContentView: View {
             case .stats:           StatsView()
             case .rewards:         RewardsView(progressVM: progressVM)
             case .workLog:         WorkClockView()
+            case .aiAssistant:     AIChatView()
             case .settings:        SettingsView(timerVM: timerVM)
             }
         }

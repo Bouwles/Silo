@@ -10,6 +10,8 @@
 		0646BB8A5C9A42DFA29C583F /* AnalyticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF6242FCB8CA4EE0B225C84A /* AnalyticsView.swift */; };
 		14777339F7414D3A950085EC /* WeeklyScheduleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5C410E7965C4B7195F9B93D /* WeeklyScheduleView.swift */; };
 		17BAEEC569C446048CFF3603 /* WorkClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D2505C9BD1426BB1EEEAF7 /* WorkClockView.swift */; };
+		6C1D25E4F7089182B34D5E6F /* AIChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0C14D3E6F87091A23C4D5E /* AIChatView.swift */; };
+		4A9B03C2D5E76F80912B3C4D /* OllamaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F8A92B1C4D65E7F891A2B3C /* OllamaService.swift */; };
 		22D06E6CEDD74CCDB7C11793 /* StatCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7102A07CBC4C278106F2E6 /* StatCard.swift */; };
 		346A3A74B4844220B095F1B6 /* FocusSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E78916473E94E0297CC1403 /* FocusSession.swift */; };
 		3AB4613776B64E289068AD58 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 354F39BBCD364EA1A384CFF5 /* Assets.xcassets */; };
@@ -45,6 +47,8 @@
 		1DD286AD5FA44EF180E754F4 /* FocusTimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerView.swift; sourceTree = "<group>"; };
 		1FB59785D1384A638F084EE1 /* SessionReflection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionReflection.swift; sourceTree = "<group>"; };
 		21D2505C9BD1426BB1EEEAF7 /* WorkClockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkClockView.swift; sourceTree = "<group>"; };
+		5B0C14D3E6F87091A23C4D5E /* AIChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIChatView.swift; sourceTree = "<group>"; };
+		3F8A92B1C4D65E7F891A2B3C /* OllamaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OllamaService.swift; sourceTree = "<group>"; };
 		2E7CEB47E123444990FFCEC2 /* XPProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPProgressBar.swift; sourceTree = "<group>"; };
 		327FF71DA359453CA06E8965 /* WeeklyEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklyEvent.swift; sourceTree = "<group>"; };
 		33B6AD06C8A2472191CC1A79 /* AmbientAudioManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmbientAudioManager.swift; sourceTree = "<group>"; };
@@ -133,8 +137,17 @@
 				E5C410E7965C4B7195F9B93D /* WeeklyScheduleView.swift */,
 				EF6242FCB8CA4EE0B225C84A /* AnalyticsView.swift */,
 				21D2505C9BD1426BB1EEEAF7 /* WorkClockView.swift */,
+				5B0C14D3E6F87091A23C4D5E /* AIChatView.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		7D2E36F5081973A4B45E6F70 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				3F8A92B1C4D65E7F891A2B3C /* OllamaService.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		BCE49647A1C94750B325A18C /* ViewModels */ = {
@@ -158,6 +171,7 @@
 				950DA17DDC714E86AA25AC2B /* Views */,
 				BCE49647A1C94750B325A18C /* ViewModels */,
 				1F00317D23384E518AC6341C /* Components */,
+				7D2E36F5081973A4B45E6F70 /* Services */,
 				354F39BBCD364EA1A384CFF5 /* Assets.xcassets */,
 				7F5085854BAC408988F720E8 /* Info.plist */,
 				FD32A97B8BFF414A817E6A09 /* Silo.entitlements */,
@@ -271,6 +285,8 @@
 				0646BB8A5C9A42DFA29C583F /* AnalyticsView.swift in Sources */,
 				5D27E43922664C5C940B879B /* WorkSession.swift in Sources */,
 				17BAEEC569C446048CFF3603 /* WorkClockView.swift in Sources */,
+				6C1D25E4F7089182B34D5E6F /* AIChatView.swift in Sources */,
+				4A9B03C2D5E76F80912B3C4D /* OllamaService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
