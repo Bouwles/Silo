@@ -41,6 +41,10 @@
 		ED86A04994DA44078A21EC5E /* StudyNotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9FDBD7B8210485C8E86BCCD /* StudyNotificationManager.swift */; };
 		EFDFCE0A4C004A8DB13B73A4 /* SavedDeepWorkTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = EEED24BCBDF143A894EAFC71 /* SavedDeepWorkTask.swift */; };
 		FF8A3CF3A0B046DB86B2114F /* TimerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98CEA9D186E44B91ABCA7074 /* TimerViewModel.swift */; };
+		D3647F8091A2B3C4D5E6F708 /* IBDPExam.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2536E7F8091A2B3C4D5E6F7 /* IBDPExam.swift */; };
+		F58691A2B3C4D5E6F7081920 /* ExamSeasonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4758091A2B3C4D5E6F70819 /* ExamSeasonView.swift */; };
+		17A81B3C4D5E6F7081920314 /* OpenMeteoService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06970A2B3C4D5E6F70819203 /* OpenMeteoService.swift */; };
+		39CA3D5E6F70819203142536 /* OpenLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B92C4D5E6F708192031425 /* OpenLibraryService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,6 +70,10 @@
 		709835E3E6AA48C8B597BB09 /* WorkSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkSession.swift; sourceTree = "<group>"; };
 		8E1F2A3B4C5D6E7F8091A2B3 /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
 		A0314C5D6E7F8091A2B3C4D5 /* HabitTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitTrackerView.swift; sourceTree = "<group>"; };
+		C2536E7F8091A2B3C4D5E6F7 /* IBDPExam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IBDPExam.swift; sourceTree = "<group>"; };
+		E4758091A2B3C4D5E6F70819 /* ExamSeasonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExamSeasonView.swift; sourceTree = "<group>"; };
+		06970A2B3C4D5E6F70819203 /* OpenMeteoService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenMeteoService.swift; sourceTree = "<group>"; };
+		28B92C4D5E6F708192031425 /* OpenLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenLibraryService.swift; sourceTree = "<group>"; };
 		7669A0E0996F48DD8D520B0C /* StudySubject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySubject.swift; sourceTree = "<group>"; };
 		7F5085854BAC408988F720E8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8252946A1743403584C251B5 /* RewardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsView.swift; sourceTree = "<group>"; };
@@ -107,6 +115,7 @@
 				EEED24BCBDF143A894EAFC71 /* SavedDeepWorkTask.swift */,
 				709835E3E6AA48C8B597BB09 /* WorkSession.swift */,
 				8E1F2A3B4C5D6E7F8091A2B3 /* Habit.swift */,
+				C2536E7F8091A2B3C4D5E6F7 /* IBDPExam.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -144,6 +153,7 @@
 				21D2505C9BD1426BB1EEEAF7 /* WorkClockView.swift */,
 				5B0C14D3E6F87091A23C4D5E /* AIChatView.swift */,
 				A0314C5D6E7F8091A2B3C4D5 /* HabitTrackerView.swift */,
+				E4758091A2B3C4D5E6F70819 /* ExamSeasonView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -152,6 +162,8 @@
 			isa = PBXGroup;
 			children = (
 				3F8A92B1C4D65E7F891A2B3C /* OllamaService.swift */,
+				06970A2B3C4D5E6F70819203 /* OpenMeteoService.swift */,
+				28B92C4D5E6F708192031425 /* OpenLibraryService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -295,6 +307,10 @@
 				17BAEEC569C446048CFF3603 /* WorkClockView.swift in Sources */,
 				6C1D25E4F7089182B34D5E6F /* AIChatView.swift in Sources */,
 				4A9B03C2D5E76F80912B3C4D /* OllamaService.swift in Sources */,
+				D3647F8091A2B3C4D5E6F708 /* IBDPExam.swift in Sources */,
+				F58691A2B3C4D5E6F7081920 /* ExamSeasonView.swift in Sources */,
+				17A81B3C4D5E6F7081920314 /* OpenMeteoService.swift in Sources */,
+				39CA3D5E6F70819203142536 /* OpenLibraryService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

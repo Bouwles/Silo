@@ -19,6 +19,8 @@ struct SiloApp: App {
             SavedDeepWorkTask.self,
             WorkSession.self,
             Habit.self,
+            IBDPExamSeason.self,
+            IBDPExam.self,
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {

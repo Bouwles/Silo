@@ -26,6 +26,8 @@
     <string>NSApplication</string>
     <key>NSUserNotificationAlertStyle</key>
     <string>alert</string>
+    <key>NSCalendarsWriteOnlyAccessUsageDescription</key>
+    <string>Silo exports your IBDP exam schedule to Calendar.</string>
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsArbitraryLoads</key>
