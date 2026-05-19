@@ -113,6 +113,7 @@ struct ExamSeasonView: View {
                 noSeasonState
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $showSetup) { SetupSeasonSheet() }
         .sheet(isPresented: $showAddExam) {
             if let s = activeSeason { AddExamSheet(season: s) }
@@ -153,8 +154,10 @@ struct ExamSeasonView: View {
                 noExamsState
             } else {
                 examList(season)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             Task { await loadWeather(season) }
             if adviceTip == nil { Task { await loadAdvice() } }
