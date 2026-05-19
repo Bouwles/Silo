@@ -14,10 +14,12 @@ let ibdpSubjects: [IBDPSubjectEntry] = [
     // Group 1 — Language A
     .init(name: "English A: Literature", group: 1),
     .init(name: "English A: Language & Literature", group: 1),
+    .init(name: "English A: Literature & Performance", group: 1),
     .init(name: "French A: Literature", group: 1),
     .init(name: "Spanish A: Literature", group: 1),
     .init(name: "Mandarin A: Literature", group: 1),
-    // Group 2 — Language B
+    .init(name: "Arabic A: Literature", group: 1),
+    // Group 2 — Language B & Ab Initio
     .init(name: "English B", group: 2),
     .init(name: "French B", group: 2),
     .init(name: "Spanish B", group: 2),
@@ -25,7 +27,17 @@ let ibdpSubjects: [IBDPSubjectEntry] = [
     .init(name: "German B", group: 2),
     .init(name: "Japanese B", group: 2),
     .init(name: "Arabic B", group: 2),
+    .init(name: "Italian B", group: 2),
+    .init(name: "Korean B", group: 2),
+    .init(name: "Russian B", group: 2),
     .init(name: "Latin", group: 2),
+    .init(name: "Spanish Ab Initio", group: 2),
+    .init(name: "French Ab Initio", group: 2),
+    .init(name: "German Ab Initio", group: 2),
+    .init(name: "Japanese Ab Initio", group: 2),
+    .init(name: "Mandarin Ab Initio", group: 2),
+    .init(name: "Arabic Ab Initio", group: 2),
+    .init(name: "Italian Ab Initio", group: 2),
     // Group 3 — Individuals & Societies
     .init(name: "History", group: 3),
     .init(name: "Geography", group: 3),
@@ -35,12 +47,14 @@ let ibdpSubjects: [IBDPSubjectEntry] = [
     .init(name: "Business Management", group: 3),
     .init(name: "Global Politics", group: 3),
     .init(name: "Social & Cultural Anthropology", group: 3),
+    .init(name: "Digital Society", group: 3),
     .init(name: "ITGS", group: 3),
     // Group 4 — Sciences
     .init(name: "Biology", group: 4),
     .init(name: "Chemistry", group: 4),
     .init(name: "Physics", group: 4),
     .init(name: "Computer Science", group: 4),
+    .init(name: "Design Technology", group: 4),
     .init(name: "Environmental Systems & Societies", group: 4),
     .init(name: "Sports, Exercise & Health Science", group: 4),
     // Group 5 — Mathematics
@@ -86,6 +100,8 @@ struct ExamSeasonView: View {
     @State private var quizExam: IBDPExam? = nil
     @State private var weatherByDate: [String: WeatherDay] = [:]
     @State private var calendarMessage: String? = nil
+    @State private var adviceTip: String? = nil
+    @State private var breakBanner: String? = nil
 
     var activeSeason: IBDPExamSeason? { seasons.first }
 
@@ -110,6 +126,28 @@ struct ExamSeasonView: View {
         VStack(spacing: 0) {
             header(season)
             toolbar(season)
+            if let tip = adviceTip {
+                adviceCard(tip)
+            }
+
+            if let banner = breakBanner {
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles").foregroundStyle(.yellow)
+                    Text(banner).font(.caption).foregroundStyle(.primary)
+                    Spacer()
+                    Button {
+                        breakBanner = nil
+                    } label: {
+                        Image(systemName: "xmark").font(.caption2).foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 8)
+                .background(Color.yellow.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .padding(.horizontal, 16).padding(.bottom, 4)
+            }
+
             Divider()
             if season.exams.isEmpty {
                 noExamsState
@@ -117,7 +155,10 @@ struct ExamSeasonView: View {
                 examList(season)
             }
         }
-        .onAppear { Task { await loadWeather(season) } }
+        .onAppear {
+            Task { await loadWeather(season) }
+            if adviceTip == nil { Task { await loadAdvice() } }
+        }
     }
 
     func header(_ season: IBDPExamSeason) -> some View {
@@ -278,7 +319,39 @@ struct ExamSeasonView: View {
         let was = exam.isCompleted
         exam.isCompleted.toggle()
         try? modelContext.save()
-        if !was { progressVM.award(xp: 25, context: modelContext) }
+        if !was {
+            progressVM.award(xp: 25, context: modelContext)
+            Task { await showBreakSuggestion() }
+        }
+    }
+
+    func showBreakSuggestion() async {
+        do {
+            let slip = try await AdviceSlipService.shared.fetch()
+            breakBanner = "Exam done! Take a break \u{2014} \(slip.advice)"
+        } catch {}
+    }
+
+    func loadAdvice() async {
+        do { adviceTip = try await AdviceSlipService.shared.fetch().advice }
+        catch {}
+    }
+
+    func adviceCard(_ tip: String) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            Image(systemName: "lightbulb.fill").foregroundStyle(.yellow).font(.system(size: 13))
+            Text(tip).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Spacer()
+            Button {
+                Task { await loadAdvice() }
+            } label: {
+                Image(systemName: "arrow.clockwise").font(.caption2).foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, 16).padding(.vertical, 8)
+        .background(Color.yellow.opacity(0.07))
+        .padding(.horizontal, 16).padding(.bottom, 4)
     }
 
     func loadWeather(_ season: IBDPExamSeason) async {
@@ -661,6 +734,7 @@ struct QuizSheet: View {
     @Environment(\.dismiss) private var dismiss
     var exam: IBDPExam
 
+    @State private var mode = 0  // 0 = AI, 1 = Trivia
     @State private var quizText = ""
     @State private var isLoading = false
     @State private var modelName = "llama3"
@@ -673,12 +747,30 @@ struct QuizSheet: View {
                     Text("Paper \(exam.paperNumber)").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
+                Picker("Mode", selection: $mode) {
+                    Text("AI").tag(0)
+                    Text("Trivia").tag(1)
+                }
+                .pickerStyle(.segmented).frame(width: 120)
+                .padding(.trailing, 8)
                 Button("Done") { dismiss() }.foregroundStyle(.secondary)
             }
             .padding(20)
 
             Divider()
 
+            if mode == 0 {
+                aiQuizContent
+            } else {
+                TriviaGameView(exam: exam)
+            }
+        }
+        .frame(width: 520, height: 500)
+        .onAppear { Task { await generateQuiz() } }
+    }
+
+    var aiQuizContent: some View {
+        VStack(spacing: 0) {
             ScrollView {
                 Group {
                     if isLoading {
@@ -697,9 +789,7 @@ struct QuizSheet: View {
                     }
                 }
             }
-
             Divider()
-
             HStack {
                 Picker("Model", selection: $modelName) {
                     Text("llama3").tag("llama3")
@@ -714,11 +804,10 @@ struct QuizSheet: View {
             }
             .padding(16)
         }
-        .frame(width: 500, height: 460)
-        .onAppear { Task { await generateQuiz() } }
     }
 
     func generateQuiz() async {
+        guard mode == 0 else { return }
         isLoading = true
         quizText = ""
         let prompt = "Generate 5 challenging practice exam questions for IB \(exam.subject) Paper \(exam.paperNumber). Number them 1 through 5. After each question add a brief hint in parentheses. Do not provide answers."
@@ -729,8 +818,113 @@ struct QuizSheet: View {
         do {
             quizText = try await OllamaService.shared.chat(model: modelName, messages: messages)
         } catch {
-            quizText = "Could not connect to Ollama. Make sure it is running on localhost:11434."
+            quizText = "Could not connect to Ollama. Make sure it is running on localhost:11434.\n\nTip: Switch to Trivia mode for multiple-choice questions that work without Ollama."
         }
         isLoading = false
+    }
+}
+
+// MARK: - TriviaGameView
+
+@MainActor
+struct TriviaGameView: View {
+    var exam: IBDPExam
+
+    @State private var questions: [TriviaQuestion] = []
+    @State private var isLoading = false
+    @State private var revealed: Set<UUID> = []
+    @State private var selected: [UUID: String] = [:]
+
+    var score: Int { revealed.filter { id in selected[id] == questions.first(where: { $0.id == id })?.correctAnswer }.count }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            if isLoading {
+                VStack(spacing: 10) {
+                    ProgressView()
+                    Text("Loading trivia...").font(.subheadline).foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else if questions.isEmpty {
+                VStack(spacing: 12) {
+                    Image(systemName: "questionmark.circle").font(.system(size: 36)).foregroundStyle(.secondary.opacity(0.4))
+                    Text("No trivia found for this subject").foregroundStyle(.secondary)
+                    Button("Try Again") { Task { await load() } }.buttonStyle(.bordered)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+            } else {
+                if !revealed.isEmpty {
+                    HStack {
+                        Text("\(score)/\(revealed.count) correct")
+                            .font(.caption).fontWeight(.semibold)
+                            .foregroundStyle(score == revealed.count ? .green : .secondary)
+                        Spacer()
+                        if revealed.count == questions.count {
+                            Button("New Questions") { Task { await load() } }
+                                .buttonStyle(.bordered).controlSize(.small)
+                        }
+                    }
+                    .padding(.horizontal, 16).padding(.vertical, 6)
+                    .background(Color.secondary.opacity(0.06))
+                }
+                ScrollView {
+                    VStack(spacing: 12) {
+                        ForEach(questions) { q in triviaCard(q) }
+                    }
+                    .padding(16)
+                }
+            }
+        }
+        .onAppear { Task { await load() } }
+    }
+
+    func load() async {
+        isLoading = true
+        questions = []; revealed = []; selected = [:]
+        do { questions = try await TriviaService.shared.fetchQuestions(subject: exam.subject) }
+        catch {}
+        isLoading = false
+    }
+
+    func triviaCard(_ q: TriviaQuestion) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(q.question).font(.system(size: 13, weight: .medium)).fixedSize(horizontal: false, vertical: true)
+            VStack(spacing: 5) {
+                ForEach(q.allAnswers, id: \.self) { answer in
+                    Button {
+                        selected[q.id] = answer
+                        revealed.insert(q.id)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text(answer).font(.system(size: 12)).multilineTextAlignment(.leading)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer()
+                            if revealed.contains(q.id) {
+                                if answer == q.correctAnswer {
+                                    Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+                                } else if selected[q.id] == answer {
+                                    Image(systemName: "xmark.circle.fill").foregroundStyle(.red)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(answerBg(q: q, answer: answer))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(revealed.contains(q.id))
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.secondary.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    func answerBg(q: TriviaQuestion, answer: String) -> Color {
+        guard revealed.contains(q.id) else { return Color.secondary.opacity(0.08) }
+        if answer == q.correctAnswer { return Color.green.opacity(0.15) }
+        if selected[q.id] == answer  { return Color.red.opacity(0.15) }
+        return Color.secondary.opacity(0.08)
     }
 }
