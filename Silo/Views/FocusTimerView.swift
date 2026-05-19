@@ -264,29 +264,13 @@ struct BibleVerseCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Label("Daily Verse", systemImage: "book.closed")
-                    .font(.subheadline).fontWeight(.medium).foregroundStyle(.secondary)
-                Spacer()
-                Button {
-                    Task { await fetchVerse() }
-                } label: {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .disabled(isLoading)
-            }
+            Label("Daily Verse", systemImage: "book.closed")
+                .font(.subheadline).fontWeight(.medium).foregroundStyle(.secondary)
 
             if isLoading {
                 ProgressView().scaleEffect(0.6).frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 8)
-            } else if verseText.isEmpty {
-                Text("Tap ↻ to load a verse")
-                    .font(.caption).foregroundStyle(.tertiary).italic()
-                    .padding(.vertical, 4)
-            } else {
+            } else if !verseText.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\u{201C}\(verseText)\u{201D}")
                         .font(.system(size: 12))
@@ -301,10 +285,21 @@ struct BibleVerseCard: View {
                 .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
             }
         }
-        .onAppear { Task { await fetchVerse() } }
+        .onAppear { Task { await loadDailyVerse() } }
     }
 
-    func fetchVerse() async {
+    func loadDailyVerse() async {
+        let defaults = UserDefaults.standard
+        let todayStr = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
+
+        if let saved = defaults.string(forKey: "bibleVerseText"),
+           let savedRef = defaults.string(forKey: "bibleVerseRef"),
+           defaults.double(forKey: "bibleVerseDate") == todayStr {
+            verseText = saved
+            verseRef = savedRef
+            return
+        }
+
         guard let ref = motivatingVerses.randomElement() else { return }
         isLoading = true
         let url = URL(string: "https://raw.githubusercontent.com/wldeh/bible-api/main/bibles/en-asv/books/\(ref.book)/chapters/\(ref.chapter)/verses/\(ref.verse).json")!
@@ -314,6 +309,9 @@ struct BibleVerseCard: View {
                let text = json["text"] as? String {
                 verseText = text
                 verseRef = "\(ref.book.capitalized) \(ref.chapter):\(ref.verse) (ASV)"
+                defaults.set(verseText, forKey: "bibleVerseText")
+                defaults.set(verseRef, forKey: "bibleVerseRef")
+                defaults.set(todayStr, forKey: "bibleVerseDate")
             }
         } catch {}
         isLoading = false
