@@ -55,6 +55,8 @@
 */
 
 import Foundation
+import AppKit
+import AuthenticationServices
 import UserNotifications
 
 // MARK: - Models
@@ -94,6 +96,15 @@ private struct AuthResp: Codable {
 // MARK: - Service
 
 @MainActor
+private class WindowProvider: NSObject, ASWebAuthenticationPresentationContextProviding {
+    nonisolated func presentationAnchor(for session: ASWebAuthenticationSession) -> ASPresentationAnchor {
+        MainActor.assumeIsolated {
+            NSApplication.shared.mainWindow ?? NSApplication.shared.windows.first ?? ASPresentationAnchor()
+        }
+    }
+}
+
+@MainActor
 class SupabaseService: ObservableObject {
     @Published var isConfigured = false
     @Published var isLoggedIn   = false
@@ -101,8 +112,13 @@ class SupabaseService: ObservableObject {
     @Published var friends: [SiloProfile] = []
     @Published var pendingRequests: [PendingRequest] = []
     @Published var errorMessage: String? = nil
+    @Published var pendingVerificationEmail: String? = nil
+    @Published var needsUsernameSetup = false
 
     private var pollingTask: Task<Void, Never>?
+    private var pendingUsername: String = ""
+    private let windowProvider = WindowProvider()
+    private var authSession: ASWebAuthenticationSession?
 
     init() {
         // Pre-configure with project credentials if not already set
@@ -170,10 +186,15 @@ class SupabaseService: ObservableObject {
             throw e(parseMsg(data) ?? "Sign up failed — check email format")
         }
         let auth = try JSONDecoder().decode(AuthResp.self, from: data)
-        sbToken = auth.access_token; sbUID = auth.user?.id
-        isLoggedIn = true
-        try await insertProfile(id: auth.user!.id, username: username)
-        await refreshMe(); await loadFriends(); startPolling()
+        if let token = auth.access_token, let uid = auth.user?.id {
+            sbToken = token; sbUID = uid
+            isLoggedIn = true
+            try await insertProfile(id: uid, username: username)
+            await refreshMe(); await loadFriends(); startPolling()
+        } else {
+            pendingVerificationEmail = email
+            pendingUsername = username
+        }
     }
 
     func signIn(email: String, password: String) async throws {
@@ -193,7 +214,67 @@ class SupabaseService: ObservableObject {
         sbToken = nil; sbUID = nil
         isLoggedIn = false; currentProfile = nil
         friends = []; pendingRequests = []
+        pendingVerificationEmail = nil; needsUsernameSetup = false
         pollingTask?.cancel()
+    }
+
+    func verifyOTP(email: String, token: String) async throws {
+        guard var r = req("/verify", method: "POST", isAuth: true) else { throw e("Config error") }
+        r.httpBody = try? JSONSerialization.data(withJSONObject: ["type": "signup", "email": email, "token": token])
+        let (data, resp) = try await URLSession.shared.data(for: r)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw e(parseMsg(data) ?? "Invalid or expired code")
+        }
+        let auth = try JSONDecoder().decode(AuthResp.self, from: data)
+        guard let accessToken = auth.access_token, let uid = auth.user?.id else {
+            throw e("Verification failed — try signing in instead")
+        }
+        sbToken = accessToken; sbUID = uid
+        isLoggedIn = true
+        pendingVerificationEmail = nil
+        try await insertProfile(id: uid, username: pendingUsername)
+        await refreshMe(); await loadFriends(); startPolling()
+    }
+
+    func signInWithGoogle() async throws {
+        guard let authURL = URL(string: "\(sbURL)/auth/v1/authorize?provider=google&redirect_to=silo://auth/callback") else {
+            throw e("Config error")
+        }
+        let callbackURL: URL = try await withCheckedThrowingContinuation { cont in
+            let session = ASWebAuthenticationSession(url: authURL, callbackURLScheme: "silo") { url, error in
+                if let error { cont.resume(throwing: error) }
+                else if let url { cont.resume(returning: url) }
+                else { cont.resume(throwing: self.e("No callback URL")) }
+            }
+            session.presentationContextProvider = windowProvider
+            session.prefersEphemeralWebBrowserSession = false
+            authSession = session
+            _ = session.start()
+        }
+        authSession = nil
+        var params: [String: String] = [:]
+        for part in (callbackURL.fragment ?? "").components(separatedBy: "&") {
+            let kv = part.split(separator: "=", maxSplits: 1).map(String.init)
+            if kv.count == 2 { params[kv[0]] = kv[1] }
+        }
+        guard let token = params["access_token"] else { throw e("No token in OAuth callback") }
+        sbToken = token
+        guard let r = req("/user", isAuth: true),
+              let (ud, _) = try? await URLSession.shared.data(for: r),
+              let dict = try? JSONSerialization.jsonObject(with: ud) as? [String: Any],
+              let uid = dict["id"] as? String else { throw e("Could not fetch user info") }
+        sbUID = uid
+        isLoggedIn = true
+        await refreshMe()
+        if currentProfile == nil { needsUsernameSetup = true }
+        else { await loadFriends(); startPolling() }
+    }
+
+    func setUsername(_ username: String) async throws {
+        guard let uid = sbUID else { throw e("Not logged in") }
+        try await insertProfile(id: uid, username: username)
+        needsUsernameSetup = false
+        await refreshMe(); await loadFriends(); startPolling()
     }
 
     // MARK: Profile

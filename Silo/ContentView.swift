@@ -11,7 +11,6 @@ enum SidebarTab: String, CaseIterable, Identifiable {
     case workLog = "Work Log"
     case habits = "Habits"
     case examSeason = "Exam Season"
-    case friends = "Friends"
     case aiAssistant = "AI Assistant"
     case settings = "Settings"
 
@@ -28,7 +27,6 @@ enum SidebarTab: String, CaseIterable, Identifiable {
         case .workLog:         return "clock.badge.checkmark"
         case .habits:          return "checkmark.seal"
         case .examSeason:      return "graduationcap.fill"
-        case .friends:         return "person.2.fill"
         case .aiAssistant:     return "sparkles"
         case .settings:        return "gearshape"
         }
@@ -41,6 +39,7 @@ struct ContentView: View {
     @Environment(TimerViewModel.self) private var timerVM
     @State private var selectedTab: SidebarTab = .timer
     @State private var progressVM = UserProgressViewModel()
+    @State private var showFriends = false
 
     var preferredScheme: ColorScheme? {
         switch progressVM.profile?.selectedTheme {
@@ -65,12 +64,23 @@ struct ContentView: View {
             case .workLog:         WorkClockView()
             case .habits:          HabitTrackerView(progressVM: progressVM)
             case .examSeason:      ExamSeasonView(progressVM: progressVM)
-            case .friends:         FriendsView(progressVM: progressVM)
             case .aiAssistant:     AIChatView()
             case .settings:        SettingsView(timerVM: timerVM)
             }
         }
         .preferredColorScheme(preferredScheme)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button { showFriends = true } label: {
+                    Image(systemName: "person.2.fill")
+                }
+                .help("Friends")
+            }
+        }
+        .sheet(isPresented: $showFriends) {
+            FriendsView(progressVM: progressVM)
+                .frame(minWidth: 420, minHeight: 520)
+        }
         .onAppear {
             progressVM.loadOrCreate(context: modelContext)
             timerVM.setModelContext(modelContext)

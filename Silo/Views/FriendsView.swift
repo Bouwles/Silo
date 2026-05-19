@@ -9,6 +9,10 @@ struct FriendsView: View {
         Group {
             if !supabase.isConfigured {
                 SetupView()
+            } else if let email = supabase.pendingVerificationEmail {
+                VerificationView(email: email)
+            } else if supabase.needsUsernameSetup {
+                ChooseUsernameView()
             } else if !supabase.isLoggedIn {
                 AuthView()
             } else {
@@ -103,6 +107,31 @@ struct AuthView: View {
             .buttonStyle(.borderedProminent)
             .disabled(isLoading || email.isEmpty || password.isEmpty || (mode == 1 && username.isEmpty))
             .padding(.top, 16)
+
+            HStack {
+                VStack { Divider() }
+                Text("or").font(.caption).foregroundStyle(.secondary)
+                VStack { Divider() }
+            }
+            .frame(maxWidth: 280).padding(.top, 8)
+
+            Button {
+                error = nil
+                Task {
+                    isLoading = true
+                    do { try await supabase.signInWithGoogle() }
+                    catch { self.error = error.localizedDescription }
+                    isLoading = false
+                }
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "globe")
+                    Text("Continue with Google")
+                }
+                .frame(maxWidth: 280)
+            }
+            .buttonStyle(.bordered)
+            .disabled(isLoading)
 
             if isLoading { ProgressView().padding(.top, 8) }
             Spacer()
@@ -513,5 +542,110 @@ struct ReminderSheet: View {
         } catch {
             self.error = error.localizedDescription
         }
+    }
+}
+
+// MARK: - Email OTP Verification
+
+struct VerificationView: View {
+    @EnvironmentObject var supabase: SupabaseService
+    let email: String
+    @State private var code = ""
+    @State private var isLoading = false
+    @State private var error: String? = nil
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            Image(systemName: "envelope.badge.fill")
+                .font(.system(size: 44)).foregroundStyle(.blue).padding(.bottom, 12)
+            Text("Check your email").font(.title2).fontWeight(.bold).padding(.bottom, 6)
+            Text("We sent a 6-digit code to\n\(email)")
+                .font(.subheadline).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center).padding(.bottom, 24)
+
+            TextField("Enter code", text: $code)
+                .textFieldStyle(.roundedBorder)
+                .font(.system(size: 20, weight: .medium, design: .monospaced))
+                .multilineTextAlignment(.center)
+                .frame(width: 180)
+                .onChange(of: code) { _, new in
+                    code = String(new.filter(\.isNumber).prefix(6))
+                }
+
+            if let err = error {
+                Text(err).font(.caption).foregroundStyle(.red).padding(.top, 8)
+            }
+
+            Button("Verify") {
+                error = nil
+                Task {
+                    isLoading = true
+                    do { try await supabase.verifyOTP(email: email, token: code) }
+                    catch { self.error = error.localizedDescription }
+                    isLoading = false
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isLoading || code.count < 6)
+            .padding(.top, 16)
+
+            if isLoading { ProgressView().padding(.top, 8) }
+
+            Button("Back") { supabase.pendingVerificationEmail = nil }
+                .buttonStyle(.plain).font(.caption).foregroundStyle(.secondary).padding(.top, 16)
+
+            Spacer()
+        }
+        .padding(40)
+    }
+}
+
+// MARK: - Choose Username (Google OAuth new user)
+
+struct ChooseUsernameView: View {
+    @EnvironmentObject var supabase: SupabaseService
+    @State private var username = ""
+    @State private var isLoading = false
+    @State private var error: String? = nil
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            Image(systemName: "person.crop.circle.badge.plus")
+                .font(.system(size: 44)).foregroundStyle(.blue).padding(.bottom, 12)
+            Text("Choose a username").font(.title2).fontWeight(.bold).padding(.bottom, 6)
+            Text("Pick a unique username for Silo.")
+                .font(.subheadline).foregroundStyle(.secondary).padding(.bottom, 24)
+
+            TextField("Username (no spaces)", text: $username)
+                .textFieldStyle(.roundedBorder)
+                .frame(maxWidth: 260)
+
+            if let err = error {
+                Text(err).font(.caption).foregroundStyle(.red).padding(.top, 8)
+            }
+
+            Button("Continue") {
+                error = nil
+                Task {
+                    isLoading = true
+                    do { try await supabase.setUsername(username.trimmingCharacters(in: .whitespaces)) }
+                    catch { self.error = error.localizedDescription }
+                    isLoading = false
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isLoading || username.trimmingCharacters(in: .whitespaces).isEmpty)
+            .padding(.top, 16)
+
+            if isLoading { ProgressView().padding(.top, 8) }
+
+            Button("Sign Out") { supabase.signOut() }
+                .buttonStyle(.plain).font(.caption).foregroundStyle(.secondary).padding(.top, 16)
+
+            Spacer()
+        }
+        .padding(40)
     }
 }
