@@ -11,6 +11,8 @@ struct FriendsView: View {
                 SetupView()
             } else if let email = supabase.pendingVerificationEmail {
                 VerificationView(email: email)
+            } else if let email = supabase.pending2FAEmail {
+                TwoFactorView(email: email)
             } else if supabase.needsUsernameSetup {
                 ChooseUsernameView()
             } else if !supabase.isLoggedIn {
@@ -126,7 +128,7 @@ struct AuthView: View {
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "globe")
-                    Text("Continue with Google")
+                    Text(mode == 1 ? "Sign Up with Google" : "Sign In with Google")
                 }
                 .frame(maxWidth: 280)
             }
@@ -542,6 +544,62 @@ struct ReminderSheet: View {
         } catch {
             self.error = error.localizedDescription
         }
+    }
+}
+
+// MARK: - 2FA Verification (login)
+
+struct TwoFactorView: View {
+    @EnvironmentObject var supabase: SupabaseService
+    let email: String
+    @State private var code = ""
+    @State private var isLoading = false
+    @State private var error: String? = nil
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+            Image(systemName: "lock.shield.fill")
+                .font(.system(size: 44)).foregroundStyle(.blue).padding(.bottom, 12)
+            Text("2-Step Verification").font(.title2).fontWeight(.bold).padding(.bottom, 6)
+            Text("A 6-digit code was sent to\n\(email)")
+                .font(.subheadline).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center).padding(.bottom, 24)
+
+            TextField("Enter code", text: $code)
+                .textFieldStyle(.roundedBorder)
+                .font(.system(size: 20, weight: .medium, design: .monospaced))
+                .multilineTextAlignment(.center)
+                .frame(width: 180)
+                .onChange(of: code) { _, new in
+                    code = String(new.filter(\.isNumber).prefix(6))
+                }
+
+            if let err = error {
+                Text(err).font(.caption).foregroundStyle(.red).padding(.top, 8)
+            }
+
+            Button("Verify & Sign In") {
+                error = nil
+                Task {
+                    isLoading = true
+                    do { try await supabase.verify2FA(email: email, token: code) }
+                    catch { self.error = error.localizedDescription }
+                    isLoading = false
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(isLoading || code.count < 6)
+            .padding(.top, 16)
+
+            if isLoading { ProgressView().padding(.top, 8) }
+
+            Button("Back") { supabase.pending2FAEmail = nil }
+                .buttonStyle(.plain).font(.caption).foregroundStyle(.secondary).padding(.top, 16)
+
+            Spacer()
+        }
+        .padding(40)
     }
 }
 

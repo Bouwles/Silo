@@ -113,6 +113,7 @@ class SupabaseService: ObservableObject {
     @Published var pendingRequests: [PendingRequest] = []
     @Published var errorMessage: String? = nil
     @Published var pendingVerificationEmail: String? = nil
+    @Published var pending2FAEmail: String? = nil
     @Published var needsUsernameSetup = false
 
     private var pollingTask: Task<Void, Never>?
@@ -204,12 +205,28 @@ class SupabaseService: ObservableObject {
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
             throw e("Invalid email or password")
         }
-        let auth = try JSONDecoder().decode(AuthResp.self, from: data)
-        guard let token = auth.access_token, let uid = auth.user?.id else {
-            throw e("Please verify your email first, then sign in")
+        // Password correct — send 2FA OTP before completing login
+        if var otpReq = req("/otp", method: "POST", isAuth: true) {
+            otpReq.httpBody = try? JSONSerialization.data(withJSONObject: ["email": email, "create_user": false])
+            _ = try? await URLSession.shared.data(for: otpReq)
         }
-        sbToken = token; sbUID = uid
+        pending2FAEmail = email
+    }
+
+    func verify2FA(email: String, token: String) async throws {
+        guard var r = req("/verify", method: "POST", isAuth: true) else { throw e("Config error") }
+        r.httpBody = try? JSONSerialization.data(withJSONObject: ["type": "email", "email": email, "token": token])
+        let (data, resp) = try await URLSession.shared.data(for: r)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else {
+            throw e(parseMsg(data) ?? "Invalid or expired code")
+        }
+        let auth = try JSONDecoder().decode(AuthResp.self, from: data)
+        guard let accessToken = auth.access_token, let uid = auth.user?.id else {
+            throw e("Verification failed")
+        }
+        sbToken = accessToken; sbUID = uid
         isLoggedIn = true
+        pending2FAEmail = nil
         await refreshMe()
         if currentProfile == nil { needsUsernameSetup = true }
         else { await loadFriends(); startPolling() }
@@ -219,7 +236,7 @@ class SupabaseService: ObservableObject {
         sbToken = nil; sbUID = nil
         isLoggedIn = false; currentProfile = nil
         friends = []; pendingRequests = []
-        pendingVerificationEmail = nil; needsUsernameSetup = false
+        pendingVerificationEmail = nil; pending2FAEmail = nil; needsUsernameSetup = false
         pollingTask?.cancel()
     }
 
