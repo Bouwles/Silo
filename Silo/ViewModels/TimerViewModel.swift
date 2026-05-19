@@ -1,6 +1,7 @@
 import SwiftUI
 import UserNotifications
 import SwiftData
+import AppKit
 
 enum TimerState {
     case idle, running, paused, break_
@@ -143,6 +144,7 @@ class TimerViewModel {
     private func sessionComplete() {
         timerTask?.cancel()
         timerTask = nil
+        NSSound(named: NSSound.Name("Glass"))?.play()
         sendNotification()
 
         if !isOnBreak {
