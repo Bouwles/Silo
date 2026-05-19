@@ -11,6 +11,7 @@ enum SidebarTab: String, CaseIterable, Identifiable {
     case workLog = "Work Log"
     case habits = "Habits"
     case examSeason = "Exam Season"
+    case friends = "Friends"
     case aiAssistant = "AI Assistant"
     case settings = "Settings"
 
@@ -27,6 +28,7 @@ enum SidebarTab: String, CaseIterable, Identifiable {
         case .workLog:         return "clock.badge.checkmark"
         case .habits:          return "checkmark.seal"
         case .examSeason:      return "graduationcap.fill"
+        case .friends:         return "person.2.fill"
         case .aiAssistant:     return "sparkles"
         case .settings:        return "gearshape"
         }
@@ -63,6 +65,7 @@ struct ContentView: View {
             case .workLog:         WorkClockView()
             case .habits:          HabitTrackerView(progressVM: progressVM)
             case .examSeason:      ExamSeasonView(progressVM: progressVM)
+            case .friends:         FriendsView(progressVM: progressVM)
             case .aiAssistant:     AIChatView()
             case .settings:        SettingsView(timerVM: timerVM)
             }

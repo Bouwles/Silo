@@ -47,6 +47,8 @@
 		39CA3D5E6F70819203142536 /* OpenLibraryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28B92C4D5E6F708192031425 /* OpenLibraryService.swift */; };
 		4AC05E7081920314253D7E8F /* AdviceSlipService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BD16F8192031425D36E7F80 /* AdviceSlipService.swift */; };
 		6CE28192031425D36E7F8091 /* TriviaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DF39203142536E7F8091A2B /* TriviaService.swift */; };
+		9F05B2C3D4E5F607182930A1 /* SupabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EF4A1B2C3D4E5F607182A30 /* SupabaseService.swift */; };
+		B127D4E5F607182930A41C3D /* FriendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A016C3D4E5F60718293041B2 /* FriendsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -78,6 +80,8 @@
 		28B92C4D5E6F708192031425 /* OpenLibraryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenLibraryService.swift; sourceTree = "<group>"; };
 		5BD16F8192031425D36E7F80 /* AdviceSlipService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdviceSlipService.swift; sourceTree = "<group>"; };
 		7DF39203142536E7F8091A2B /* TriviaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TriviaService.swift; sourceTree = "<group>"; };
+		8EF4A1B2C3D4E5F607182A30 /* SupabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseService.swift; sourceTree = "<group>"; };
+		A016C3D4E5F60718293041B2 /* FriendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FriendsView.swift; sourceTree = "<group>"; };
 		7669A0E0996F48DD8D520B0C /* StudySubject.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudySubject.swift; sourceTree = "<group>"; };
 		7F5085854BAC408988F720E8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8252946A1743403584C251B5 /* RewardsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewardsView.swift; sourceTree = "<group>"; };
@@ -158,6 +162,7 @@
 				5B0C14D3E6F87091A23C4D5E /* AIChatView.swift */,
 				A0314C5D6E7F8091A2B3C4D5 /* HabitTrackerView.swift */,
 				E4758091A2B3C4D5E6F70819 /* ExamSeasonView.swift */,
+				A016C3D4E5F60718293041B2 /* FriendsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -170,6 +175,7 @@
 				28B92C4D5E6F708192031425 /* OpenLibraryService.swift */,
 				5BD16F8192031425D36E7F80 /* AdviceSlipService.swift */,
 				7DF39203142536E7F8091A2B /* TriviaService.swift */,
+				8EF4A1B2C3D4E5F607182A30 /* SupabaseService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -319,6 +325,8 @@
 				39CA3D5E6F70819203142536 /* OpenLibraryService.swift in Sources */,
 				4AC05E7081920314253D7E8F /* AdviceSlipService.swift in Sources */,
 				6CE28192031425D36E7F8091 /* TriviaService.swift in Sources */,
+				9F05B2C3D4E5F607182930A1 /* SupabaseService.swift in Sources */,
+				B127D4E5F607182930A41C3D /* FriendsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

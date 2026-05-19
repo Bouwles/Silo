@@ -6,6 +6,7 @@ import UserNotifications
 struct SiloApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @State private var timerVM = TimerViewModel()
+    @StateObject private var supabaseService = SupabaseService()
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -35,6 +36,7 @@ struct SiloApp: App {
             ContentView()
                 .modelContainer(sharedModelContainer)
                 .environment(timerVM)
+                .environmentObject(supabaseService)
         }
         .windowStyle(.titleBar)
         .windowToolbarStyle(.unified)
