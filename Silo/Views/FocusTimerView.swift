@@ -233,6 +233,8 @@ struct FocusTimerView: View {
                         .font(.system(size: 13))
                 }
 
+                BibleVerseCard()
+
                 Spacer(minLength: 20)
             }
             .padding(.horizontal, 16)
@@ -241,6 +243,81 @@ struct FocusTimerView: View {
         .background(Color(nsColor: .controlBackgroundColor))
     }
 
+}
+
+// MARK: - Bible Verse Card
+
+struct BibleVerseCard: View {
+    @State private var verseText: String = ""
+    @State private var verseRef: String = ""
+    @State private var isLoading: Bool = false
+
+    private let motivatingVerses: [(book: String, chapter: Int, verse: Int)] = [
+        ("philippians", 4, 13), ("joshua", 1, 9), ("isaiah", 40, 31),
+        ("psalms", 46, 1), ("romans", 8, 28), ("proverbs", 3, 5),
+        ("matthew", 11, 28), ("john", 16, 33), ("2corinthians", 12, 9),
+        ("hebrews", 12, 1), ("psalms", 23, 4), ("romans", 8, 37),
+        ("galatians", 6, 9), ("psalms", 121, 1), ("isaiah", 41, 10),
+        ("jeremiah", 29, 11), ("matthew", 6, 34), ("1corinthians", 10, 13),
+        ("psalms", 37, 4), ("colossians", 3, 23)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Label("Daily Verse", systemImage: "book.closed")
+                    .font(.subheadline).fontWeight(.medium).foregroundStyle(.secondary)
+                Spacer()
+                Button {
+                    Task { await fetchVerse() }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .disabled(isLoading)
+            }
+
+            if isLoading {
+                ProgressView().scaleEffect(0.6).frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+            } else if verseText.isEmpty {
+                Text("Tap ↻ to load a verse")
+                    .font(.caption).foregroundStyle(.tertiary).italic()
+                    .padding(.vertical, 4)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("\u{201C}\(verseText)\u{201D}")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.primary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("— \(verseRef)")
+                        .font(.caption2).foregroundStyle(.secondary)
+                }
+                .padding(10)
+                .background(Color(nsColor: .textBackgroundColor))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.secondary.opacity(0.15), lineWidth: 1))
+            }
+        }
+        .onAppear { Task { await fetchVerse() } }
+    }
+
+    func fetchVerse() async {
+        guard let ref = motivatingVerses.randomElement() else { return }
+        isLoading = true
+        let url = URL(string: "https://raw.githubusercontent.com/wldeh/bible-api/main/bibles/en-asv/books/\(ref.book)/chapters/\(ref.chapter)/verses/\(ref.verse).json")!
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let text = json["text"] as? String {
+                verseText = text
+                verseRef = "\(ref.book.capitalized) \(ref.chapter):\(ref.verse) (ASV)"
+            }
+        } catch {}
+        isLoading = false
+    }
 }
 
 // MARK: - Inline Tasks
