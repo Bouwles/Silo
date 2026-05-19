@@ -205,9 +205,14 @@ class SupabaseService: ObservableObject {
             throw e("Invalid email or password")
         }
         let auth = try JSONDecoder().decode(AuthResp.self, from: data)
-        sbToken = auth.access_token; sbUID = auth.user?.id
+        guard let token = auth.access_token, let uid = auth.user?.id else {
+            throw e("Please verify your email first, then sign in")
+        }
+        sbToken = token; sbUID = uid
         isLoggedIn = true
-        await refreshMe(); await loadFriends(); startPolling()
+        await refreshMe()
+        if currentProfile == nil { needsUsernameSetup = true }
+        else { await loadFriends(); startPolling() }
     }
 
     func signOut() {
@@ -272,7 +277,10 @@ class SupabaseService: ObservableObject {
 
     func setUsername(_ username: String) async throws {
         guard let uid = sbUID else { throw e("Not logged in") }
-        try await insertProfile(id: uid, username: username)
+        // insertProfile ignores conflict if profile exists — safe to call for sign-in recovery too
+        let trimmed = username.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw e("Username can't be empty") }
+        try await insertProfile(id: uid, username: trimmed)
         needsUsernameSetup = false
         await refreshMe(); await loadFriends(); startPolling()
     }
@@ -280,10 +288,12 @@ class SupabaseService: ObservableObject {
     // MARK: Profile
 
     private func insertProfile(id: String, username: String) async throws {
-        guard var r = req("/profiles", method: "POST", prefer: "return=minimal") else { return }
+        guard var r = req("/profiles?on_conflict=id", method: "POST",
+                          prefer: "return=minimal,resolution=ignore-duplicates") else { return }
         r.httpBody = try? JSONSerialization.data(withJSONObject: ["id": id, "username": username])
         let (data, resp) = try await URLSession.shared.data(for: r)
-        guard (resp as? HTTPURLResponse)?.statusCode == 201 else {
+        let status = (resp as? HTTPURLResponse)?.statusCode ?? 0
+        guard status == 200 || status == 201 else {
             throw e(parseMsg(data) ?? "Username taken or invalid")
         }
     }
