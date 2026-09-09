@@ -1,5 +1,10 @@
 # Silo
 
+[![SwiftUI](https://img.shields.io/badge/SwiftUI-F05138?style=for-the-badge&logo=swift&logoColor=white)](#)
+[![License](https://img.shields.io/github/license/Bouwles/Silo?style=for-the-badge&color=16a34a)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/Bouwles/Silo?style=for-the-badge&color=16a34a)](https://github.com/Bouwles/Silo/commits)
+
+
 A native macOS productivity app built with SwiftUI and SwiftData. Silo combines focus timers, task management, work tracking, and study analytics into one clean interface.
 
 ## Features
